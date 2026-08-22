@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "baseUrl": "./",
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["src/**/*", "tools/**/*", "vitest.config.mts"],
+  "exclude": ["node_modules", "dist"]
+}
