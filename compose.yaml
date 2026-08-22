@@ -1,0 +1,26 @@
+# ローカル開発用の PostgreSQL のみ。
+# アプリ本体は Docker に入れない（docs/06-infra-ci.md 6.4）——
+# ホットリロードの速度とデバッガの繋ぎやすさを優先する。
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: todoapli-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: todoapli
+      POSTGRES_PASSWORD: todoapli
+      POSTGRES_DB: todoapli
+    ports:
+      # ホスト側は 5434。5432 / 5433 は別プロジェクト（muscle-app）が使っているため。
+      # 変えたいときは .env の DATABASE_URL も合わせること。
+      - '${DB_PORT:-5434}:5432'
+    volumes:
+      - todoapli-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U todoapli -d todoapli']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  todoapli-pgdata:

@@ -1,0 +1,40 @@
+// docs/04-backend.md 4.7 に対応するスキーマ。
+//
+// インデックスは 2 本とも先頭カラムが owner_id。
+// 全クエリが必ず owner_id で絞る設計（docs/02-domain-and-api.md 2.4）なので、
+// 複合インデックスの先頭に置くのが正しい。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TodoStatus {
+  todo
+  doing
+  done
+}
+
+model Todo {
+  /// uuid v7。時系列にソート可能なので B-tree の挿入が末尾に寄り、
+  /// v4 よりインデックスの断片化が起きにくい。
+  id String @id @db.Uuid
+
+  /// Cognito の sub。User テーブルは作らない（docs/02-domain-and-api.md 2.1）。
+  ownerId String @map("owner_id")
+
+  title       String     @db.VarChar(120)
+  description String?
+  status      TodoStatus
+  dueDate     DateTime?  @map("due_date") @db.Timestamptz(3)
+  createdAt   DateTime   @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime   @map("updated_at") @db.Timestamptz(3)
+
+  @@index([ownerId, createdAt(sort: Desc)])
+  @@index([ownerId, status])
+  @@map("todos")
+}
