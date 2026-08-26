@@ -7,6 +7,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { HealthModule } from './health/health.module';
 import { MeModule } from './me/me.module';
+import { TodosModule } from './todos/todos.module';
 
 @Module({
   imports: [
@@ -15,9 +16,7 @@ import { MeModule } from './me/me.module';
     AuthModule,
     HealthModule,
     MeModule,
-    // TODO(Phase 1): TodosModule を実装したらここに追加する。
-    //   手本: reference/phase1-list-todos/
-    //   写す先: src/todos/
+    TodosModule,
   ],
   providers: [
     // Guard / Filter / Pipe は DI が要るので APP_* トークンで登録する。
