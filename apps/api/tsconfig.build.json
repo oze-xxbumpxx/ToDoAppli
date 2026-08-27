@@ -4,5 +4,12 @@
     "rootDir": "./src"
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts", "tools/**/*", "vitest.config.mts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.spec.ts",
+    "src/**/testing/**",
+    "tools/**/*",
+    "vitest.config.mts"
+  ]
 }

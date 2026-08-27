@@ -1,38 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { Todo } from '../domain/todo.entity';
-import type { Paginated, TodoFilter, TodoRepository } from '../domain/todo.repository';
+import type { TodoFilter } from '../domain/todo.repository';
 import type { TodoStatus } from '../domain/todo-status';
+import { InMemoryTodoRepository } from '../testing/in-memory-todo.repository';
 import { ListTodosUseCase } from './list-todos.usecase';
-
-/**
- * 本物の Prisma 実装と同じ絞り込みをメモリ上で再現する。
- * UseCase は委譲だけなので、ここで ownerId / status / keyword / paging を揃えないと
- * テストが「UseCase が呼んだ」以上のことを検証できない。
- */
-class InMemoryTodoRepository implements TodoRepository {
-  constructor(private readonly rows: readonly Todo[]) {}
-
-  async findMany(ownerId: string, filter: TodoFilter): Promise<Paginated<Todo>> {
-    let owned = this.rows.filter((todo) => todo.ownerId === ownerId);
-
-    if (filter.status) {
-      owned = owned.filter((todo) => todo.status === filter.status);
-    }
-
-    if (filter.keyword) {
-      const keyword = filter.keyword.toLowerCase();
-      owned = owned.filter((todo) => todo.title.value.toLowerCase().includes(keyword));
-    }
-
-    const start = (filter.page - 1) * filter.limit;
-    return {
-      items: owned.slice(start, start + filter.limit),
-      page: filter.page,
-      limit: filter.limit,
-      total: owned.length,
-    };
-  }
-}
 
 function todoOf(
   id: string,

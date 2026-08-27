@@ -1,64 +1,57 @@
-# todos — ここはあなたが実装します
+# todos
 
-手本は `reference/phase1-list-todos/` にあります。
-**手本を開いたまま貼り付けるのではなく、別ウィンドウで見ながらここに手で打ってください**
-（docs/08-learning-method.md 8.5）。
+## いまの状態（2026-08-27）
 
-## 手順
-
-### 1. 模写 — 一覧取得の縦 1 本
-
-`reference/phase1-list-todos/` の中身を、同じパス構成でこのディレクトリに書き写す。
-
-```
-todos/
-  todos.module.ts
-  presentation/
-    todos.controller.ts
-    dto/
-      list-todos-query.dto.ts
-      todo-response.dto.ts
-  application/
-    list-todos.usecase.ts
-  domain/
-    todo.entity.ts
-    todo-title.vo.ts
-    todo-status.ts
-    todo.repository.ts
-    todo.errors.ts
-  infrastructure/
-    prisma-todo.repository.ts
-```
-
-書き終わったら `src/app.module.ts` の `imports` に `TodosModule` を追加する。
-
-**Phase 1 の完了条件**
-
-```bash
-curl -s http://localhost:3000/api/v1/todos -H "Authorization: Bearer $(pnpm -s token | tail -3 | head -1)"
-```
-
-が 200 を返すこと。
-
-### 2. 手本を閉じて、横展開
-
-ここからは手本なし。同じ形で書けるかどうかが理解度テストです。
-
-| 横展開先 | 越える山 |
+| | 誰が書いたか |
 |---|---|
-| `POST /todos` | `CreateTodoUseCase` / `CreateTodoDto` / F-09 の重複チェック |
-| `GET /todos/:id` | `findById` に `ownerId` を渡す。他人のものは **404** |
-| `PATCH /todos/:id` | 部分更新。Entity は不変なので `todo = todo.changeStatus(...)` |
-| `DELETE /todos/:id` | 204 を返す |
+| 一覧取得の縦 1 本（手本 `reference/phase1-list-todos/`） | **あなた**（模写済み・動作確認済み） |
+| domain の spec 3 本（entity / title / status） | **あなた**（手本に無いものを自力で追加） |
+| 横展開 4 本（POST / GET :id / PATCH / DELETE）と Domain Service | **Claude**（2026-08-27 に方針変更。あなたはレビュー側） |
 
-### 3. Domain Service（F-09）
+> 当初は横展開も本人が書く計画でした（docs/08-learning-method.md 8.3）。
+> 9/1 の日程が押したため、**「Claude が書き、本人が読んでレビューする」に変更**。
+> 理解度の確認は、書けるかどうかではなく**レビューで指摘できるか**で取ります。
 
-`domain/services/todo-title-uniqueness.checker.ts` を書く。
-Create と Update の**両方から呼ばれる**のがポイント（docs/04-backend.md 4.8）。
+## レビューで見るところ（docs/08-learning-method.md 8.5）
 
-`@Injectable()` は付けられません。domain 層は NestJS を import できないので
-（ESLint が止めます）、`todos.module.ts` の `useFactory` で組み立てます。
+「動くか」ではなく「**設計通りか**」を見てください。
 
-## 詰まったら
+- [ ] `ownerId` が Repository の第一引数に渡っているか（[02 の 2.4](../../../../docs/02-domain-and-api.md)）
+- [ ] Controller に業務ロジックが漏れていないか（[04 の 4.2](../../../../docs/04-backend.md)）
+- [ ] UseCase が Prisma を import していないか（[04 の 4.3](../../../../docs/04-backend.md)）
+- [ ] domain 層が NestJS を import していないか（同上。ESLint も見ている）
+- [ ] 業務ルールが Entity / 値オブジェクト / Domain Service のどれに置かれているか、
+      その振り分けが [04 の 4.8](../../../../docs/04-backend.md) の基準どおりか
 
-手本を見てよいが、**見たことを記録する**。そこがあなたの弱点です。
+### 特に説明できるようにしておくもの
+
+| 場所 | 問い |
+|---|---|
+| `presentation/todos.controller.ts` の `update()` | なぜ `body.description` に `?? null` を付けてはいけないのか |
+| `application/update-todo.usecase.ts` の末尾 | なぜ「タイトルを変えたとき」ではなく「変更後が未完了なら」F-09 を見るのか |
+| `application/delete-todo.usecase.ts` | なぜクエリを 2 本にしてまで `findById` してから消すのか |
+| `infrastructure/prisma-todo.repository.ts` の `findById` | なぜ `findUnique({ id })` ではないのか |
+| `todos.module.ts` の `useFactory` | なぜ Domain Service に `@Injectable()` を付けられないのか |
+
+## 動作確認済みのこと（2026-08-27、実際に HTTP で確認）
+
+| 確認 | 結果 |
+|---|---|
+| `POST /todos` | 201 + `Location: /api/v1/todos/{id}` |
+| 同じタイトルで再度 POST | 422 `duplicate-todo-title`（F-09） |
+| `GET /todos/:id` 自分 / 他人 / 不正 UUID | 200 / **404** / 400 |
+| `PATCH` で status だけ送る | description は変わらない |
+| `PATCH` で `description: null` | 消える |
+| `PATCH` で done → doing | 422 `invalid-status-transition` |
+| `PATCH` に DTO に無いキー | 400（`whitelist` + `forbidNonWhitelisted`） |
+| `DELETE` 1 回目 / 2 回目 / 他人 | 204 / 404 / 404 |
+
+## まだ無いもの（意図的）
+
+- **DB レベルの一意制約**。F-09 は Domain Service だけで守っており、
+  同時リクエストでは 2 本ともすり抜ける。本来の最後の砦は
+  `WHERE status IN ('todo','doing')` の部分ユニークインデックスで、
+  Prisma のスキーマでは表現できず migration に生 SQL が要る。
+  **入れていない**が、案件で聞かれたら答えられるようにしておくこと
+- Controller レベルのテスト（`@nestjs/testing` + supertest）。
+  単体テストは 43 本あるが、DI の配線ミスは検出できない
