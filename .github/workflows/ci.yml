@@ -1,0 +1,58 @@
+# docs/06-infra-ci.md 6.3 に対応する CI。
+#
+# 設計判断:
+#   - lint と typecheck を分ける。ESLint は型を見ないので、
+#     tsc --noEmit を独立ステップにしないと型エラーが CI をすり抜ける
+#   - job は分けない。並列化は CI 時間が実際に問題になってからで足りる
+#   - --frozen-lockfile を必ず付ける。CI の仕事は再現性の担保なので、
+#     ロックファイルを CI が勝手に更新することを許さない
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# 同じブランチに続けて push したとき、古い実行を打ち切る
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # packageManager フィールド（pnpm@10.33.4）から版を読む。
+      # setup-node の cache: pnpm より先に実行する必要がある
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Prisma Client は生成物。これが無いと @prisma/client の型が解決できず、
+      # 型付き lint も typecheck も落ちる。DB への接続は不要
+      - name: Generate Prisma Client
+        run: pnpm --filter @todoapli/api db:generate
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+  # Terraform の fmt/validate は infra/ を作る Phase 4 で足す。
+  # どちらも AWS 認証情報が不要なので、その時点でこの workflow に 1 job 増える
