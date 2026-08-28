@@ -1,0 +1,19 @@
+/* CSS Modules（決定 D-4）。クラス名はビルド時に一意化されるので、
+   グローバルな命名規約（BEM 等）を覚える必要がない。 */
+
+.layout {
+  display: grid;
+  grid-template-columns: 20rem 1fr;
+  gap: 1rem;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.done {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
