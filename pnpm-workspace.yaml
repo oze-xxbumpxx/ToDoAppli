@@ -1,0 +1,11 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# pnpm 10 は既定で postinstall を実行しない。
+# prisma はクライアント生成、esbuild はバイナリ取得に必要なので明示的に許可する。
+onlyBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
+  - esbuild
+  - prisma

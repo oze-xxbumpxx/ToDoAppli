@@ -120,6 +120,18 @@ await this.repo.save(todo);
 `const` ではなく `let` になるが、Google 規約は「再代入しないなら `const`」であって
 `let` を禁じてはいないので違反ではない。
 
+### 例外 3：設定ファイルは default export を許す
+
+`vitest.config.ts` / `vite.config.ts` は、**ローダーが default export を読む仕様**なので
+G-1 を満たせない。名前付き export に変えると設定として認識されない。
+
+対象を `*.config.ts` に限定して `no-restricted-syntax` を無効化する。
+**例外を ESLint の設定に書く**ことが重要で、こうしておけば
+「なんとなく例外」が増えていかない。例外を増やすには設定を触る必要がある。
+
+> この例外は 2026-08-22、Phase 1 で実際に lint を走らせて発覚した。
+> 設計時に予見できていなかったもので、規約は動かして初めて穴が見つかる例。
+
 ## 9.4 ESLint での強制
 
 規約は**人間の記憶ではなく CI で守る**（→ [06 の 6.3](./06-infra-ci.md)）。
