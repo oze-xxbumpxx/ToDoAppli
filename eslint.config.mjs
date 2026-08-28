@@ -133,6 +133,28 @@ export default tseslint.config(
     rules: { 'no-console': 'off' },
   },
 
+  // 例外 4: React コンポーネントは PascalCase でないと JSX がコンポーネントとして
+  // 解釈しない（小文字始まりは DOM 要素扱い）。規約より言語仕様が優先される
+  // （docs/09-coding-standards.md 9.3 例外 4）。緩めるのは apps/web の .tsx だけ。
+  {
+    files: ['apps/web/**/*.tsx'],
+    rules: {
+      '@typescript-eslint/naming-convention': [
+        'error',
+        { selector: 'default', format: ['camelCase'], leadingUnderscore: 'forbid', trailingUnderscore: 'forbid' },
+        { selector: 'function', format: ['camelCase', 'PascalCase'] },
+        { selector: 'import', format: ['camelCase', 'PascalCase'] },
+        { selector: 'variable', format: ['camelCase', 'UPPER_CASE', 'PascalCase'], leadingUnderscore: 'forbid', trailingUnderscore: 'forbid' },
+        { selector: 'parameter', format: ['camelCase'], leadingUnderscore: 'forbid' },
+        { selector: 'typeLike', format: ['PascalCase'] },
+        { selector: 'enumMember', format: ['UPPER_CASE'] },
+        { selector: 'objectLiteralProperty', format: null },
+        { selector: 'typeProperty', format: null },
+        { selector: 'classProperty', modifiers: ['static', 'readonly'], format: ['UPPER_CASE', 'camelCase'] },
+      ],
+    },
+  },
+
   // 例外 3: 設定ファイルはローダーの仕様上 default export が必須
   // （docs/09-coding-standards.md 9.3）。例外を設定に書くことで、例外が増えないようにする。
   {

@@ -132,6 +132,23 @@ G-1 を満たせない。名前付き export に変えると設定として認�
 > この例外は 2026-08-22、Phase 1 で実際に lint を走らせて発覚した。
 > 設計時に予見できていなかったもので、規約は動かして初めて穴が見つかる例。
 
+### 例外 4：React コンポーネントの関数名は PascalCase を許す
+
+`naming-convention` の既定セレクタは関数名を camelCase に縛るので、
+
+```tsx
+export function TodosLayout(): JSX.Element { ... }   // ✗ camelCase ではない
+```
+
+が弾かれる。しかし React では**コンポーネントは PascalCase でなければ
+JSX がコンポーネントとして解釈しない**（小文字始まりは DOM 要素扱いになる）。
+規約とフレームワークの仕様が正面から衝突しており、規約側を曲げるしかない。
+
+対象を `apps/web/**/*.tsx` に限定し、`function` セレクタにだけ PascalCase を足す。
+`apps/api` 側は締めたままなので、緩むのはフロントの JSX ファイルだけ。
+
+> 例外 3 と同じく、Phase 2 の骨格を lint に通して発覚したもの。
+
 ## 9.4 ESLint での強制
 
 規約は**人間の記憶ではなく CI で守る**（→ [06 の 6.3](./06-infra-ci.md)）。
