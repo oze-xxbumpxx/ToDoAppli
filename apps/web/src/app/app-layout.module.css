@@ -1,0 +1,26 @@
+/* CSS Modules（決定 D-4）。クラス名はビルド時に一意化されるので、
+   グローバルな命名規約（BEM 等）を覚える必要がない。 */
+
+.frame {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1rem;
+  font-family: system-ui, sans-serif;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 1rem;
+}
+
+.header a {
+  font-weight: 700;
+}
+
+.header button {
+  margin-left: auto;
+}

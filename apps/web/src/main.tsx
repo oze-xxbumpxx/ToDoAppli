@@ -1,14 +1,14 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { RouterProvider } from 'react-router/dom';
+import { router } from './router';
 
 /**
- * ★ ここが Phase 2 の入口です。
+ * data mode（決定 D-3）の入口。
  *
- * いまは骨格だけ。下のプレースホルダを
- *
- *   <RouterProvider router={router} />
- *
- * に置き換えるのが最初の一歩になります（手本は reference/ を参照）。
+ * RouterProvider を 'react-router' ではなく **'react-router/dom'** から取るのは、
+ * こちらが View Transition のために flushSync を挟むブラウザ向けの実装だから。
+ * 型はどちらも同じなので、間違えても動いてしまう。だから意識して選ぶ。
  */
 const container = document.getElementById('root');
 if (container === null) {
@@ -17,6 +17,6 @@ if (container === null) {
 
 createRoot(container).render(
   <StrictMode>
-    <p>Phase 2 未実装。apps/web/README.md を読んでください。</p>
+    <RouterProvider router={router} />
   </StrictMode>,
 );

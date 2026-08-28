@@ -1,8 +1,8 @@
 /**
  * Phase A 用のダミー JWT 発行スクリプト。
  *
- *   pnpm token                        # 既定のユーザー
- *   pnpm token user-002 b@test.dev    # 別ユーザー
+ *   pnpm run token                        # 既定のユーザー
+ *   pnpm run token user-002 b@test.dev    # 別ユーザー
  *
  * 2 人分を発行すれば「片方のユーザーで他方の Todo を取ると 404 になる」ことを
  * 手で確認できる（docs/02-domain-and-api.md 2.4）。
