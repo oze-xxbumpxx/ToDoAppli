@@ -28,6 +28,14 @@
 ## 次にやること
 
 **Phase 0（設計）完了 — 2026-08-22。** D-1〜D-10 すべて決定済み。
+**Phase 1（API）完了 — 2026-08-27。** 6 エンドポイント + Domain Service、単体テスト 43 本。
+**Phase 3（CI）完了 — 2026-08-28。** lint / typecheck / test / build が PR で回る。
 
-→ **Phase 1**：monorepo 骨格 / NestJS 層構成 / PostgreSQL / ダミー JWT
-（[07-plan.md](./07-plan.md) の 7.1、[08-learning-method.md](./08-learning-method.md) の 8.4）
+→ **Phase 2**：フロントのルート構成と F-03〜F-07
+配線（`apps/web/`・`packages/shared/`）と模写用の手本（`reference/phase2-todos-ui/`）は
+用意済みなので、[apps/web/README.md](../apps/web/README.md) の手順から始めてください
+（[03-frontend.md](./03-frontend.md)、[08-learning-method.md](./08-learning-method.md) の 8.2）。
+
+その先は Phase 4（Cognito + Terraform）→ Phase 5（Passkey）。
+Phase 4 の開始までに Terraform / AWS CLI の導入と `aws configure` が必要です
+（[07-plan.md](./07-plan.md) の 7.1）。

@@ -8,8 +8,9 @@ Passkey ログイン付き Todo SPA。
 ## 構成
 
 ```
-apps/api/          NestJS 11 + Prisma（Phase 1）
-apps/web/          React Router 8（Phase 2 で作る）
+apps/api/          NestJS 11 + Prisma（Phase 1・完了）
+apps/web/          React Router 8（Phase 2・配線と手本のみ。画面はこれから）
+packages/shared/   API レスポンスの型。api と web で共有する
 reference/         模写用の手本。apps/ には手で打つこと
 infra/             Terraform（Phase 4 で作る）
 docs/              設計ドキュメント
@@ -58,7 +59,13 @@ curl -s http://localhost:3000/api/v1/me -H "Authorization: Bearer $(pnpm -s --fi
 
 ## いまここ
 
-- **Phase 0** 設計 … 完了
-- **Phase 1** API 骨格 … 配線は完了。`apps/api/src/todos/` の実装が残り
-  → [apps/api/src/todos/README.md](./apps/api/src/todos/README.md) を読んでください
-- Phase 2 フロント / Phase 3 CI / Phase 4 Cognito + Terraform / Phase 5 Passkey
+- **Phase 0** 設計 … 完了（決定 D-1〜D-10）
+- **Phase 1** API 骨格 … **完了**。6 エンドポイントすべて実装済み、単体テスト 43 本
+  → レビュー観点は [apps/api/src/todos/README.md](./apps/api/src/todos/README.md)
+- **Phase 3** CI … 完了。lint / typecheck / test / build が PR で回る
+- **Phase 2** フロント … **ここが次**。配線と手本は用意済み、画面はこれから
+  → [apps/web/README.md](./apps/web/README.md) を読んでください
+- Phase 4 Cognito + Terraform / Phase 5 Passkey … 未着手
+
+Phase 3 が Phase 2 より先に終わっているのは、CI が他フェーズに依存しないため
+先に片付けたからで、計画（[docs/07-plan.md](./docs/07-plan.md) 7.1）からの逸脱ではありません。
