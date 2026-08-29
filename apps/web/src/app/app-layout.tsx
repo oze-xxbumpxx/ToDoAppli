@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigation } from 'react-router';
-import { logoutUrl } from '../auth/cognito';
+import { logoutUrl, passkeyRegistrationUrl } from '../auth/cognito';
 import { readEmailFromIdToken } from '../auth/id-token';
 import { clearAccessToken, getIdToken } from '../lib/token-store';
 import styles from './app-layout.module.css';
@@ -30,6 +30,17 @@ export function AppLayout(): React.JSX.Element {
           {navigation.state === 'idle' ? '' : '通信中…'}
         </span>
         {email === null ? null : <small>{email}</small>}
+        {/* ★ Passkey の登録導線。Cognito は「サインアップ直後」にしか登録を促さないので、
+            後から有効化した場合はアプリ側から明示的に送る必要がある。
+            Managed Login のページへ素の遷移をする（SPA 内の遷移ではない） */}
+        <button
+          type="button"
+          onClick={() => {
+            window.location.assign(passkeyRegistrationUrl());
+          }}
+        >
+          Passkey を登録
+        </button>
         <button
           type="button"
           onClick={() => {

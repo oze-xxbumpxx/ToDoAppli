@@ -149,6 +149,26 @@ export async function exchangeCodeForTokens(
 }
 
 /**
+ * ★ 既存ユーザーが Passkey を登録するためのページ（Managed Login）。
+ *
+ * Cognito が登録を促してくるのは「サインアップ直後」だけで、
+ * ログイン画面が Passkey を出すのは「すでに 1 個以上登録済み」のユーザーだけ。
+ * つまり**後から有効化した場合、アプリ側から明示的にここへ送らないと誰も登録できない**。
+ *
+ * 登録には Cognito のセッションが必要で、無い場合は
+ * redirect_uri に ?result=invalid_session を付けて跳ね返される。
+ *
+ * 出典: AWS「Authentication flows」の passkey の節（2026-08-29 確認）
+ */
+export function passkeyRegistrationUrl(): string {
+  const params = new URLSearchParams({
+    client_id: CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+  });
+  return `https://${DOMAIN}/passkeys/add?${params.toString()}`;
+}
+
+/**
  * ログアウト URL。Cognito 側のセッション Cookie を切るために、ここへ遷移させる必要がある。
  * ローカルのトークンを捨てるだけだと、次のログインで**何も聞かれずに入れてしまう**。
  */
