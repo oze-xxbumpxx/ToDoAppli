@@ -18,7 +18,7 @@ build/
 *.tfstate.*
 *.tfvars
 !*.tfvars.example
-.terraform.lock.hcl
+# .terraform.lock.hcl は **コミットする**（provider のバージョン固定。infra/README.md）
 
 # editor / os
 .DS_Store

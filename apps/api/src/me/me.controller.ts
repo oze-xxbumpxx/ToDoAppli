@@ -11,7 +11,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 @Controller('me')
 export class MeController {
   @Get()
-  get(@CurrentUser() user: AuthenticatedUser): { sub: string; email: string } {
+  get(@CurrentUser() user: AuthenticatedUser): { sub: string; email: string | null } {
     return { sub: user.sub, email: user.email };
   }
 }
