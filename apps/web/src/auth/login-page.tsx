@@ -1,45 +1,60 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
-import { setAccessToken } from '../lib/token-store';
+import { useSearchParams } from 'react-router';
+import { beginLogin, isCognitoConfigured, safeReturnTo } from './cognito';
 
 /**
- * ★ 仮のログイン画面。**Phase 4 で丸ごと捨てます。**
+ * ログイン画面（Phase 4）。**Cognito に飛ばすだけ**の画面。
  *
- * いまは Cognito が無いので、`pnpm run token` で発行した開発用トークンを
- * 手で貼るだけ。凝る価値がないので凝っていない。
+ * ★ Phase A の「トークンを手で貼る」フォームはここで捨てた。
+ *   入力欄が 1 つも無いのが正しい状態で、パスワードはこの画面を通らない。
  *
- * 唯一まともなのは「トークンをメモリにしか置かない」ところ（決定 D-1）。
- * ここを localStorage にすると Phase 4 で直すのを忘れる。
+ * ★ 自動でリダイレクトせず、ボタンを押させている。
+ *   自動にすると、Cognito 側でエラーが起きたときに /login と Cognito の間で
+ *   無限に往復する。原因を読める場所を残しておく方が、実装中の事故が軽い。
  */
 export function LoginPage(): React.JSX.Element {
-  const [token, setToken] = useState('');
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
 
-  const from = searchParams.get('from') ?? '/app/todos';
+  // ★ from をそのまま使わない。外から与えられる値なので検証を通す（cognito.ts の safeReturnTo）
+  const from = safeReturnTo(searchParams.get('from'));
+  const configured = isCognitoConfigured();
+
+  // callback loader が失敗したときに ?error= で飛ばしてくる。これが無いと
+  // 「ログイン画面に戻されたが理由が分からない」状態になる
+  const oauthError = searchParams.get('error');
 
   return (
-    <main>
-      <h1>ログイン（仮）</h1>
-      <p>
-        <code>pnpm run token</code> で発行したトークンを貼ってください。
-      </p>
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          setAccessToken(token.trim());
-          void navigate(from, { replace: true });
+    <main style={{ maxWidth: '32rem', margin: '4rem auto', fontFamily: 'system-ui, sans-serif' }}>
+      <h1>ToDoApli</h1>
+
+      {configured ? (
+        <p>ログインすると、自分の Todo だけが表示されます。</p>
+      ) : (
+        <p role="alert">
+          Cognito の設定が読み込まれていません。<code>pnpm run env:sync</code> を実行して、
+          dev サーバーを再起動してください。
+        </p>
+      )}
+
+      {/* React は文字列を必ずエスケープして描画するので、ここに HTML を差し込まれることはない */}
+      {oauthError === null ? null : <p role="alert">{oauthError}</p>}
+      {error === null ? null : <p role="alert">{error}</p>}
+
+      <button
+        type="button"
+        disabled={!configured}
+        onClick={() => {
+          // async をイベントハンドラで扱う。challenge の計算に await が要る
+          beginLogin(from)
+            .then((url) => window.location.assign(url))
+            .catch((cause: unknown) => {
+              setError(cause instanceof Error ? cause.message : 'ログインを開始できませんでした');
+            });
         }}
       >
-        <textarea
-          value={token}
-          onChange={(event) => setToken(event.target.value)}
-          rows={4}
-          cols={60}
-          aria-label="アクセストークン"
-        />
-        <button type="submit">入る</button>
-      </form>
+        ログイン
+      </button>
     </main>
   );
 }

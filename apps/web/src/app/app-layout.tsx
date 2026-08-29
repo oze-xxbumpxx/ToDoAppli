@@ -1,5 +1,7 @@
 import { NavLink, Outlet, useNavigation } from 'react-router';
-import { clearAccessToken } from '../lib/token-store';
+import { logoutUrl } from '../auth/cognito';
+import { readEmailFromIdToken } from '../auth/id-token';
+import { clearAccessToken, getIdToken } from '../lib/token-store';
 import styles from './app-layout.module.css';
 
 /**
@@ -14,6 +16,11 @@ export function AppLayout(): React.JSX.Element {
   //   これも状態管理ライブラリが要らない理由のひとつ（3.5）
   const navigation = useNavigation();
 
+  // ★ 表示用。API から取っていないのは、Cognito のアクセストークンに email が
+  //   入らないため（apps/api の authenticated-user.ts のコメント）。
+  //   ID トークンは検証していないので、表示以外に使ってはいけない
+  const email = readEmailFromIdToken(getIdToken());
+
   return (
     <div className={styles.frame}>
       <header className={styles.header}>
@@ -22,12 +29,15 @@ export function AppLayout(): React.JSX.Element {
         <span aria-busy={navigation.state !== 'idle'}>
           {navigation.state === 'idle' ? '' : '通信中…'}
         </span>
+        {email === null ? null : <small>{email}</small>}
         <button
           type="button"
           onClick={() => {
+            // ★ 手元のトークンを捨てるだけでは足りない。Cognito 側のセッション Cookie が
+            //   残っていると、次のログインで何も聞かれずに入れてしまう。
+            //   だから Cognito のログアウト URL へ遷移させる
             clearAccessToken();
-            // Phase 4 まで仮。トークンを捨ててから素の遷移でリロードする
-            window.location.assign('/login');
+            window.location.assign(logoutUrl());
           }}
         >
           ログアウト

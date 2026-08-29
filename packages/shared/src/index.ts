@@ -28,7 +28,8 @@ export interface ListTodosResponse {
 
 export interface MeResponse {
   readonly sub: string;
-  readonly email: string;
+  /** Cognito のアクセストークンには email が無いので null になりうる（apps/api の authenticated-user.ts）。 */
+  readonly email: string | null;
 }
 
 /** RFC 9457 (application/problem+json)。docs/02 の 2.5。 */

@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router';
 import { AppLayout } from './app/app-layout';
 import { RouteErrorBoundary } from './app/route-error-boundary';
+import { callbackLoader } from './auth/callback.loader';
 import { LoginPage } from './auth/login-page';
 import { requireAuthLoader } from './auth/require-auth.loader';
 import { TodoDetailPage } from './todos/todo-detail-page';
@@ -28,6 +29,14 @@ import { todosLoader } from './todos/todos.loader';
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/app/todos" replace /> },
   { path: '/login', element: <LoginPage /> },
+  {
+    // Cognito からの戻り先（docs/05-auth.md 5.1）。element を持たないのは、
+    // loader が必ず redirect を投げるので**描画されることが無い**ため。
+    // 交換に失敗したときだけ errorElement が出る
+    path: '/auth/callback',
+    loader: callbackLoader,
+    errorElement: <RouteErrorBoundary />,
+  },
   {
     path: '/app',
     element: <AppLayout />,
