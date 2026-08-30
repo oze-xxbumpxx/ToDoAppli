@@ -23,6 +23,7 @@ export function LoginPage(): React.JSX.Element {
   // callback loader が失敗したときに ?error= で飛ばしてくる。これが無いと
   // 「ログイン画面に戻されたが理由が分からない」状態になる
   const oauthError = searchParams.get('error');
+  const notice = searchParams.get('notice');
 
   return (
     <main style={{ maxWidth: '32rem', margin: '4rem auto', fontFamily: 'system-ui, sans-serif' }}>
@@ -38,6 +39,7 @@ export function LoginPage(): React.JSX.Element {
       )}
 
       {/* React は文字列を必ずエスケープして描画するので、ここに HTML を差し込まれることはない */}
+      {notice === null ? null : <p role="status">{notice}</p>}
       {oauthError === null ? null : <p role="alert">{oauthError}</p>}
       {error === null ? null : <p role="alert">{error}</p>}
 

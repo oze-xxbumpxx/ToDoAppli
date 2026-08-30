@@ -1,3 +1,7 @@
 {
-  "recommendations": ["esbenp.prettier-vscode"]
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    // HCL の構文強調・整形・検証・補完。これが無いと .tf は白一色になる
+    "hashicorp.terraform"
+  ]
 }

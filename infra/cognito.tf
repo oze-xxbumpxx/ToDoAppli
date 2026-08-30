@@ -1,10 +1,6 @@
 # Cognito（Phase 4 / docs/05-auth.md）。
 #
-# ★ ここで作るのは「パスワードでログインできる状態」までです。
-#   Passkey（WebAuthn）の有効化は Phase 5 で、下の web_authn_configuration の
-#   コメントを外して sign_in_policy に WEB_AUTHN を足すだけになります。
-#   一度に両方入れないのは、失敗したときに「Cognito の設定ミス」か
-#   「WebAuthn の要件不足」かを切り分けられなくなるため（docs/05 の 5.5 の Phase B / C）。
+# Phase 5 で Passkey（WebAuthn）を有効化した。Phase 4 との差分は下の 2 か所だけ。
 
 resource "aws_cognito_user_pool" "main" {
   name = "${var.project}-${var.environment}"
@@ -31,20 +27,36 @@ resource "aws_cognito_user_pool" "main" {
     require_uppercase = true
   }
 
-  # 第 1 認証要素の選択肢。Phase 5 で "WEB_AUTHN" を足す。
+  # 第 1 認証要素の選択肢（Phase 5）。
+  #
+  # ★ PASSWORD を**残している**のが設計判断。Passkey は認証器（この端末）に紐づくので、
+  #   端末を失う・登録に失敗する・別の端末から入る、のどれでも詰む。
+  #   そもそも最初の 1 個を登録するにも、一度ログインできる手段が要る。
+  #   「パスワードレスにする」ことと「パスワードを消す」ことは別物。
   sign_in_policy {
-    allowed_first_auth_factors = ["PASSWORD"]
+    allowed_first_auth_factors = ["PASSWORD", "WEB_AUTHN"]
   }
 
-  # TODO(Phase 5): Passkey を有効化する。
-  #   relying_party_id は **WebAuthn の儀式が動くドメイン**に一致している必要がある。
-  #   Managed Login に任せる構成なので Cognito 側のドメインになるが、
-  #   属性名・許容値ともに着手時に AWS の公式ドキュメントで確認すること（docs/05 の 5.6）。
+  # ★ Passkey の設定（2026-08-29 に AWS の API リファレンスで確認）。
   #
-  # web_authn_configuration {
-  #   relying_party_id = "${var.domain_prefix}.auth.${var.region}.amazoncognito.com"
-  #   user_verification = "required"
-  # }
+  # relying_party_id は「認証器が信頼する相手」を表すドメインで、**WebAuthn の儀式が
+  # 実際に動くオリジン**と一致していなければならない。この構成では儀式は
+  # Managed Login（Cognito のドメイン）で動くので、アプリ側の localhost:5173 ではない。
+  #
+  # ★ aws_cognito_user_pool_domain.main.domain を参照していないのは、循環参照になるため。
+  #   domain 側が user_pool_id でこのプールを参照しているので、逆向きの参照を足すと
+  #   terraform が依存グラフを解けなくなる。同じ値の出どころである var を使う。
+  #
+  # 注意: 将来 Cognito に**カスタムドメイン**を付けると、RP ID をそのドメインに
+  # 変えることが必須になり、**それ以前に登録された Passkey は使えなくなる**（別の RP 扱い）。
+  web_authn_configuration {
+    relying_party_id = "${var.domain_prefix}.auth.${var.region}.amazoncognito.com"
+
+    # required = ユーザー検証（生体認証・PIN）ができる認証器しか登録・利用できない。
+    # Passkey を**第 1 要素**として使う以上、「持っている」だけで通ると弱いので required。
+    # preferred にすると、検証なしの古いセキュリティキーでも登録できてしまう。
+    user_verification = "required"
+  }
 
   account_recovery_setting {
     recovery_mechanism {
